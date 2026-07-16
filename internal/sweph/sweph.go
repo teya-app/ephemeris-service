@@ -6,6 +6,7 @@
 package sweph
 
 /*
+#cgo LDFLAGS: -lm
 #include <stdlib.h>
 #include "swephexp.h"
 */
