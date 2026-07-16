@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  sanity:
+    name: Sanity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: License must be AGPL-3.0
+        run: grep -q "GNU AFFERO GENERAL PUBLIC LICENSE" LICENSE
+      - name: NOTICE must credit Swiss Ephemeris
+        run: grep -q "Astrodienst" NOTICE
+
+  # Go build + golden-chart tests are added together with the first service code.

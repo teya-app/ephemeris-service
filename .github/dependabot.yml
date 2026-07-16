@@ -1,0 +1,7 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  # gomod ecosystem is added together with the first Go code.
