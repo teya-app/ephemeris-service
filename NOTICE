@@ -1,0 +1,15 @@
+Teya Ephemeris Service
+Copyright (C) 2026 Teya
+
+This service uses the Swiss Ephemeris library.
+
+Swiss Ephemeris is Copyright (C) Astrodienst AG, Zurich, Switzerland,
+and is distributed under a dual licensing model:
+
+  1. GNU Affero General Public License v3 (AGPL-3.0)
+  2. Astrodienst professional (commercial) license
+
+This project uses Swiss Ephemeris under the AGPL-3.0 license.
+
+Swiss Ephemeris: https://www.astro.com/swisseph/
+Source repository: https://github.com/aloistr/swisseph
