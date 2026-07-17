@@ -3,6 +3,7 @@ package chart
 import (
 	"log/slog"
 	"math"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
@@ -254,4 +255,76 @@ func TestComputeConcurrent(t *testing.T) {
 		}()
 	}
 	wg.Wait()
+}
+
+func swissEngine(t *testing.T) *Engine {
+	t.Helper()
+	e, err := NewEngine(filepath.Join("..", "..", "ephe"), slog.New(slog.DiscardHandler))
+	if err != nil {
+		t.Fatalf("NewEngine(ephe): %v", err)
+	}
+	return e
+}
+
+func TestSwissEphemeris(t *testing.T) {
+	e := swissEngine(t)
+	if e.Ephemeris() != "swiss" {
+		t.Fatalf("ephemeris = %q, want swiss", e.Ephemeris())
+	}
+
+	in := Input{
+		DatetimeUTC: time.Date(1990, 5, 17, 21, 15, 0, 0, time.UTC),
+		Lat:         59.9386,
+		Lon:         30.3141,
+		HouseSystem: "placidus",
+	}
+	c, err := e.Compute(in)
+	if err != nil {
+		t.Fatalf("Compute: %v", err)
+	}
+	if len(c.Planets) != 13 {
+		t.Errorf("planets = %d, want 13 (chiron included)", len(c.Planets))
+	}
+	var chiron Planet
+	for _, p := range c.Planets {
+		if p.Name == "chiron" {
+			chiron = p
+		}
+	}
+	if chiron.Name == "" {
+		t.Fatal("chiron missing with swiss files")
+	}
+	if chiron.Sign != "cancer" {
+		t.Errorf("chiron sign = %q, want cancer (1990-05-17)", chiron.Sign)
+	}
+
+	// Moshier and Swiss must agree far below the golden tolerance.
+	m, err := testEngine(t).Compute(in)
+	if err != nil {
+		t.Fatalf("Compute (moshier): %v", err)
+	}
+	moshier := map[string]float64{}
+	for _, p := range m.Planets {
+		moshier[p.Name] = p.Lon
+	}
+	for _, p := range c.Planets {
+		if p.Name == "chiron" {
+			continue
+		}
+		if d := lonDiff(p.Lon, moshier[p.Name]); d > 0.01 {
+			t.Errorf("%s: swiss %v vs moshier %v (Δ%.4f°)", p.Name, p.Lon, moshier[p.Name], d)
+		}
+	}
+}
+
+func TestSwissEphemerisCoversAPIRange(t *testing.T) {
+	e := swissEngine(t)
+	for _, dt := range []time.Time{
+		time.Date(1801, 1, 1, 0, 0, 0, 0, time.UTC),
+		time.Date(2200, 12, 31, 23, 59, 59, 0, time.UTC),
+	} {
+		if _, err := e.Compute(Input{DatetimeUTC: dt, Lat: 0, Lon: 0, HouseSystem: "placidus"}); err != nil {
+			t.Errorf("Compute(%s): %v", dt.Format(time.RFC3339), err)
+		}
+	}
 }

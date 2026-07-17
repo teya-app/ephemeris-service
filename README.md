@@ -68,6 +68,8 @@ docker build -t ephemeris-service . && docker run -p 8080:8080 ephemeris-service
 
 Configuration (environment only): `ADDR` (default `:8080`), `EPHE_PATH` (directory with Swiss Ephemeris `.se1` files; unset = built-in Moshier approximation, ~0.1″ precision for planets, no Chiron), `LOG_LEVEL` (`debug|info|warn|error`).
 
+The Docker image bundles the `.se1` files for 1800–2399 ([`ephe/`](ephe/), ~2 MB) and sets `EPHE_PATH` to them, so containers compute with the Swiss ephemeris — Chiron included — out of the box. `go run` without `EPHE_PATH` uses Moshier.
+
 When `EPHE_PATH` is set, the files are probed at startup and the service refuses to start if they are unusable — the library would otherwise fall back to Moshier silently while the service reports Swiss precision.
 
 `ephemeris-service healthcheck` probes `/healthz` of the local server and exits 0/1 — used by the Docker `HEALTHCHECK` (the slim runtime image has no curl/wget).
@@ -76,17 +78,17 @@ Request bodies contain birth data (personal data) and are never logged.
 
 ## Accuracy
 
-A golden test suite ([`testdata/golden/`](testdata/golden/)) will hold 30 reference charts cross-checked against astro.com:
+The golden test suite ([`testdata/golden/`](testdata/golden/)) holds 30 reference charts generated with the Astrodienst reference utility `swetest` and spot-checked byte-identical against astro.com:
 
 - planet longitudes within **0.01°**
 - house cusps within **0.1°**
-- must include USSR-era and 1991–2014 Russian births to pin down historical timezone handling
+- covers USSR-era and modern Russian dates, polar latitudes, the southern hemisphere, both range edges and every supported house system
 
-CI fails on any drift.
+CI runs every chart in both Swiss and Moshier modes on every commit and fails on any drift.
 
 ## Status
 
-v0 implemented: chart computation (planets, houses, angles, aspects) over HTTP, Moshier ephemeris by default. Golden test suite is being populated (see `testdata/golden/`); Swiss `.se1` data files wiring and historical timezone handling live in the consuming application.
+v0 implemented: chart computation (planets, houses, angles, aspects) over HTTP; Swiss ephemeris files bundled in the image, Moshier fallback without them; golden suite of 30 charts in CI. Historical timezone handling (local birth time → UTC) lives in the consuming application.
 
 ## Security
 

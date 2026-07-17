@@ -5,9 +5,6 @@
 /bin/
 coverage.out
 
-# Ephemeris data files are fetched at build time, not committed
-/ephe/
-*.se1
 
 # Local environment
 .env

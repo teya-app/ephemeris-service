@@ -15,9 +15,10 @@ import (
 const maxBodyBytes = 4 << 10 // requests are tiny; anything bigger is abuse
 
 const (
-	// Wide enough for natal charts and transits, clear of the pre-1582
-	// Julian/Gregorian calendar ambiguity.
-	minYear = 1800
+	// Wide enough for natal charts and transits, fully inside the bundled
+	// *_18.se1 file range (which starts mid-day 1800-01-01) and clear of
+	// the pre-1582 calendar ambiguity.
+	minYear = 1801
 	maxYear = 2200
 )
 
@@ -119,11 +120,13 @@ func (s *Server) handleChart(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleHealthz(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{
+	if err := writeJSON(w, http.StatusOK, map[string]string{
 		"status":         "ok",
 		"engine_version": s.engine.EngineVersion(),
 		"ephemeris":      s.engine.Ephemeris(),
-	})
+	}); err != nil {
+		s.log.Error("response write failed", "error", err.Error())
+	}
 }
 
 // writeJSON marshals before writing the header: a marshal failure (e.g. a
