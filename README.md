@@ -20,7 +20,8 @@ The isolation rules we hold ourselves to:
 ```jsonc
 // request
 {
-  "datetime_utc": "1990-05-17T21:15:00Z",   // RFC3339, years 1000..2999
+  "datetime_utc": "1990-05-17T21:15:00Z",   // RFC3339, years 1800..2200
+                                             // (offsets accepted, converted to UT)
   "lat": 59.9386,                            // -90..90
   "lon": 30.3141,                            // -180..180
   "house_system": "placidus"                 // placidus | koch | whole_sign |
@@ -29,25 +30,29 @@ The isolation rules we hold ourselves to:
                                              // unknown birth time, no houses)
 }
 
-// response
+// response (real output for the request above, lists abbreviated)
 {
   "planets": [
-    { "name": "sun", "lon": 56.7812, "sign": "taurus", "sign_lon": 26.7812,
-      "house": 7, "speed": 0.9634, "retrograde": false }
-    // sun..pluto, mean_node, lilith; chiron when ephemeris files are available
+    { "name": "sun", "lon": 56.6952, "sign": "taurus", "sign_lon": 26.6952,
+      "house": 4, "speed": 0.9634, "retrograde": false }
+    // sun..pluto, mean_node, lilith; chiron when ephemeris files are available.
+    // "house" is omitted with house_system=none.
   ],
-  "houses":  [ { "num": 1, "cusp_lon": 245.11, "sign": "sagittarius" } ],
-  "angles":  { "asc": 245.11, "asc_sign": "sagittarius", "mc": 170.2, "mc_sign": "virgo" },
-  "aspects": [ { "p1": "sun", "p2": "moon", "type": "trine", "orb": 1.2 } ],
+  "houses":  [ { "num": 1, "cusp_lon": 266.3371, "sign": "sagittarius" } ],
+  "angles":  { "asc": 266.3371, "asc_sign": "sagittarius", "mc": 226.838, "mc_sign": "scorpio" },
+  "aspects": [ { "p1": "sun", "p2": "moon", "type": "square", "orb": 0.7594 } ],
   "meta": {
     "engine_version": "2.10.03",
     "ephemeris": "moshier",        // or "swiss" when EPHE_PATH is set
     "house_system": "placidus",
-    "polar_fallback": false        // true: quadrant system undefined at this
-                                   // latitude, cusps computed with Porphyry
+    "polar_fallback": false        // always present; true: quadrant system
+                                   // undefined at this latitude, cusps
+                                   // computed with Porphyry
   }
 }
 ```
+
+With `house_system: "none"` the response has no `houses` and no `angles`, and planets carry no `house` field. Errors are always `{"error": "..."}` with 4xx/5xx and never echo the submitted values.
 
 `GET /healthz` → `{ "status": "ok", "engine_version": "...", "ephemeris": "..." }`
 
@@ -62,6 +67,10 @@ docker build -t ephemeris-service . && docker run -p 8080:8080 ephemeris-service
 ```
 
 Configuration (environment only): `ADDR` (default `:8080`), `EPHE_PATH` (directory with Swiss Ephemeris `.se1` files; unset = built-in Moshier approximation, ~0.1″ precision for planets, no Chiron), `LOG_LEVEL` (`debug|info|warn|error`).
+
+When `EPHE_PATH` is set, the files are probed at startup and the service refuses to start if they are unusable — the library would otherwise fall back to Moshier silently while the service reports Swiss precision.
+
+`ephemeris-service healthcheck` probes `/healthz` of the local server and exits 0/1 — used by the Docker `HEALTHCHECK` (the slim runtime image has no curl/wget).
 
 Request bodies contain birth data (personal data) and are never logged.
 
