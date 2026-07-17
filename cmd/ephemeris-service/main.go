@@ -33,11 +33,16 @@ func main() {
 	}
 
 	log := newLogger(os.Getenv("LOG_LEVEL"))
+	if err := run(log); err != nil {
+		log.Error("ephemeris-service failed", "error", err.Error())
+		os.Exit(1)
+	}
+}
 
+func run(log *slog.Logger) error {
 	engine, err := chart.NewEngine(os.Getenv("EPHE_PATH"), log)
 	if err != nil {
-		log.Error("engine init failed", "error", err.Error())
-		os.Exit(1)
+		return fmt.Errorf("engine init: %w", err)
 	}
 	defer sweph.Close()
 
@@ -72,15 +77,15 @@ func main() {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(shutdownCtx); err != nil {
-			log.Error("shutdown failed", "error", err.Error())
-			os.Exit(1)
+			return fmt.Errorf("shutdown: %w", err)
 		}
 		log.Info("ephemeris-service stopped")
+		return nil
 	case err := <-errCh:
-		if !errors.Is(err, http.ErrServerClosed) {
-			log.Error("server failed", "error", err.Error())
-			os.Exit(1)
+		if errors.Is(err, http.ErrServerClosed) {
+			return nil
 		}
+		return err
 	}
 }
 
@@ -95,7 +100,8 @@ func runHealthcheck() int {
 		return 1
 	}
 	client := &http.Client{Timeout: 3 * time.Second}
-	resp, err := client.Get("http://127.0.0.1:" + port + "/healthz")
+	resp, err := client.Get("http://127.0.0.1:" + port + "/healthz") //nolint:gosec // self-probe; port comes from our own ADDR
+
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "healthcheck: %v\n", err)
 		return 1

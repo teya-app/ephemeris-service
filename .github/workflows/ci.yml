@@ -14,10 +14,10 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-      - name: gofmt
-        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
-      - name: go vet
-        run: go vet ./...
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.12.2
       - name: go build
         run: go build ./...
       - name: go test
@@ -40,5 +40,11 @@ jobs:
           for i in $(seq 1 20); do
             curl -fs localhost:8080/healthz && ok=1 && break || sleep 0.5
           done
+          test "$ok" = "1" || { docker logs eph; exit 1; }
+          # A real chart request through an HTTP worker thread: catches
+          # thread-local state regressions that the startup probe cannot.
+          body='{"datetime_utc":"1990-05-17T21:15:00Z","lat":59.9386,"lon":30.3141}'
+          resp=$(curl -fs -X POST -d "$body" localhost:8080/v1/chart) || { docker logs eph; exit 1; }
+          echo "$resp" | grep -q '"ephemeris":"swiss"' || { echo "not swiss: $resp"; exit 1; }
+          echo "$resp" | grep -q '"chiron"' || { echo "chiron missing: $resp"; exit 1; }
           docker stop eph
-          test "$ok" = "1"
