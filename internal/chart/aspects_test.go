@@ -63,3 +63,29 @@ func TestComputeAspectsNoFalsePositives(t *testing.T) {
 		t.Errorf("expected no aspects at 45°, got %v", aspects)
 	}
 }
+
+// The orb comparison is inclusive (orb <= def.orb): a separation exactly at
+// the orb edge is an aspect, one hair beyond is not.
+func TestComputeAspectsOrbBoundary(t *testing.T) {
+	// Square orb is 8°: 90+8 = 98° is exactly on the edge.
+	edge := []Planet{{Name: "sun", Lon: 0}, {Name: "moon", Lon: 98}}
+	aspects := computeAspects(edge)
+	if len(aspects) != 1 || aspects[0].Type != "square" || aspects[0].Orb != 8 {
+		t.Fatalf("at exactly the orb edge want one square orb 8, got %v", aspects)
+	}
+
+	over := []Planet{{Name: "sun", Lon: 0}, {Name: "moon", Lon: 98.01}}
+	if a := computeAspects(over); len(a) != 0 {
+		t.Errorf("just past the orb edge must yield no aspect, got %v", a)
+	}
+}
+
+// A separation that qualifies for two aspects is recorded once, as the first
+// (tightest-listed) match — the break in computeAspects.
+func TestComputeAspectsSingleMatchPerPair(t *testing.T) {
+	planets := []Planet{{Name: "sun", Lon: 0}, {Name: "moon", Lon: 60}}
+	aspects := computeAspects(planets)
+	if len(aspects) != 1 || aspects[0].Type != "sextile" {
+		t.Errorf("60° should record exactly one sextile, got %v", aspects)
+	}
+}
