@@ -28,6 +28,33 @@ func TestHouseFor(t *testing.T) {
 	}
 }
 
+// Non-uniform Placidus-style cusps with a 0° wrap between cusp 12 and cusp 1:
+// house boundaries are inclusive at the cusp, exclusive at the next.
+func TestHouseForRealisticCusps(t *testing.T) {
+	var cusps [13]float64
+	vals := []float64{0, 266.34, 299.02, 331.7, 4.38, 37.06, 69.74, 86.34, 119.02, 151.7, 184.38, 217.06, 249.74}
+	copy(cusps[:], vals)
+
+	tests := []struct {
+		lon  float64
+		want int
+	}{
+		{266.34, 1},  // exactly on the Ascendant cusp
+		{280, 1},     // inside house 1
+		{299.02, 2},  // exactly on cusp 2
+		{350, 3},     // house 3 spans the 0° wrap (331.7 → 4.38)
+		{0, 3},       // still house 3 just past 0°
+		{20, 4},      // house 4
+		{249.74, 12}, // exactly on cusp 12
+		{249.73, 11}, // one hair before cusp 12
+	}
+	for _, tt := range tests {
+		if got := houseFor(tt.lon, cusps); got != tt.want {
+			t.Errorf("houseFor(%v) = %d, want %d", tt.lon, got, tt.want)
+		}
+	}
+}
+
 func TestInArc(t *testing.T) {
 	tests := []struct {
 		x, from, to float64

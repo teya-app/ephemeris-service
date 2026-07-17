@@ -20,7 +20,7 @@ The isolation rules we hold ourselves to:
 ```jsonc
 // request
 {
-  "datetime_utc": "1990-05-17T21:15:00Z",   // RFC3339, years 1800..2200
+  "datetime_utc": "1990-05-17T21:15:00Z",   // RFC3339, years 1801..2200
                                              // (offsets accepted, converted to UT)
   "lat": 59.9386,                            // -90..90
   "lon": 30.3141,                            // -180..180
