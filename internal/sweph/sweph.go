@@ -88,6 +88,14 @@ type CalcResult struct {
 	Lat      float64 // ecliptic latitude, degrees
 	Dist     float64 // distance, AU
 	LonSpeed float64 // longitude speed, degrees/day (negative = retrograde)
+
+	flags int32 // iflag actually used (silent fallback changes it)
+}
+
+// UsedSwiss reports whether the Swiss ephemeris data files actually served
+// this calculation (the fallback to Moshier is silent).
+func (r CalcResult) UsedSwiss() bool {
+	return r.flags&C.SEFLG_SWIEPH != 0
 }
 
 // CalcUT computes the position of a body at the given Julian day (UT).
@@ -113,6 +121,7 @@ func CalcUT(jdUT float64, body Body, useSwiss bool) (CalcResult, error) {
 		Lat:      float64(xx[1]),
 		Dist:     float64(xx[2]),
 		LonSpeed: float64(xx[3]),
+		flags:    int32(ret),
 	}, nil
 }
 

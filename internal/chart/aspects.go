@@ -58,7 +58,7 @@ func computeAspects(planets []Planet) []Aspect {
 						Type: def.name,
 						Orb:  round4(orb),
 					})
-					break // a pair matches at most one major aspect
+					break
 				}
 			}
 		}

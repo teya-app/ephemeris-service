@@ -15,4 +15,7 @@ USER 65534:65534
 # Swiss Ephemeris .se1 data files can be mounted and pointed to via EPHE_PATH;
 # without them the built-in Moshier approximation is used.
 EXPOSE 8080
+# The binary probes its own /healthz: the slim image has no curl/wget.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
+  CMD ["/ephemeris-service", "healthcheck"]
 ENTRYPOINT ["/ephemeris-service"]

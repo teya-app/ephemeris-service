@@ -5,12 +5,17 @@
 //	EPHE_PATH directory with Swiss Ephemeris .se1 files (default: none,
 //	          the built-in Moshier approximation is used)
 //	LOG_LEVEL debug | info | warn | error (default "info")
+//
+// "ephemeris-service healthcheck" probes the local /healthz and exits 0/1 —
+// for container HEALTHCHECK in images without curl/wget.
 package main
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -23,9 +28,17 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
+		os.Exit(runHealthcheck())
+	}
+
 	log := newLogger(os.Getenv("LOG_LEVEL"))
 
-	engine := chart.NewEngine(os.Getenv("EPHE_PATH"), log)
+	engine, err := chart.NewEngine(os.Getenv("EPHE_PATH"), log)
+	if err != nil {
+		log.Error("engine init failed", "error", err.Error())
+		os.Exit(1)
+	}
 	defer sweph.Close()
 
 	addr := os.Getenv("ADDR")
@@ -69,6 +82,30 @@ func main() {
 			os.Exit(1)
 		}
 	}
+}
+
+func runHealthcheck() int {
+	addr := os.Getenv("ADDR")
+	if addr == "" {
+		addr = ":8080"
+	}
+	_, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "healthcheck: invalid ADDR %q: %v\n", addr, err)
+		return 1
+	}
+	client := &http.Client{Timeout: 3 * time.Second}
+	resp, err := client.Get("http://127.0.0.1:" + port + "/healthz")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "healthcheck: %v\n", err)
+		return 1
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		fmt.Fprintf(os.Stderr, "healthcheck: status %s\n", resp.Status)
+		return 1
+	}
+	return 0
 }
 
 func newLogger(level string) *slog.Logger {

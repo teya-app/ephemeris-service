@@ -3,6 +3,7 @@ package chart
 import (
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/teya-app/ephemeris-service/internal/sweph"
 )
@@ -32,6 +33,10 @@ var computedBodies = []struct {
 // optionalBodies may legitimately fail depending on available ephemeris data.
 var optionalBodies = map[string]bool{"chiron": true}
 
+// meanPoints are computed analytically, so the library never reports the
+// Swiss ephemeris flag for them — exempt from the UsedSwiss check.
+var meanPoints = map[string]bool{"mean_node": true, "lilith": true}
+
 // Engine computes natal charts. Safe for concurrent use: the underlying
 // sweph package serializes library access.
 type Engine struct {
@@ -40,14 +45,44 @@ type Engine struct {
 }
 
 // NewEngine creates an Engine. If ephePath is non-empty, it must point to a
-// directory with Swiss Ephemeris .se1 data files; otherwise the built-in
-// Moshier approximation is used (precise enough for natal work: ~0.1″ for
-// planets, but no Chiron).
-func NewEngine(ephePath string, log *slog.Logger) *Engine {
-	if ephePath != "" {
-		sweph.SetEphePath(ephePath)
+// directory with Swiss Ephemeris .se1 data files (probed at construction,
+// unusable files are an error); otherwise the built-in Moshier approximation
+// is used (precise enough for natal work: ~0.1″ for planets, but no Chiron).
+func NewEngine(ephePath string, log *slog.Logger) (*Engine, error) {
+	e := &Engine{useSwiss: ephePath != "", log: log}
+	if ephePath == "" {
+		return e, nil
 	}
-	return &Engine{useSwiss: ephePath != "", log: log}
+	sweph.SetEphePath(ephePath)
+	if err := probeSwissFiles(log); err != nil {
+		return nil, fmt.Errorf("EPHE_PATH %q: %w", ephePath, err)
+	}
+	return e, nil
+}
+
+// probeSwissFiles computes every chart body at J2000 and fails when the
+// data files did not actually serve the calculation.
+func probeSwissFiles(log *slog.Logger) error {
+	jd := sweph.JulDayUT(time.Date(2000, 1, 1, 12, 0, 0, 0, time.UTC))
+	for _, b := range computedBodies {
+		if meanPoints[b.name] {
+			continue
+		}
+		res, err := sweph.CalcUT(jd, b.body, true)
+		ok := err == nil && res.UsedSwiss()
+		if ok {
+			continue
+		}
+		if optionalBodies[b.name] {
+			log.Warn("optional body unavailable with provided ephemeris files", "body", b.name)
+			continue
+		}
+		if err != nil {
+			return fmt.Errorf("probe %s: %w", b.name, err)
+		}
+		return fmt.Errorf("probe %s: swiss ephemeris files not used (files missing or not covering J2000)", b.name)
+	}
+	return nil
 }
 
 // Ephemeris returns the active ephemeris kind: "swiss" or "moshier".
@@ -68,8 +103,13 @@ func (e *Engine) Compute(in Input) (*Chart, error) {
 	jd := sweph.JulDayUT(in.DatetimeUTC)
 
 	planets := make([]Planet, 0, len(computedBodies))
+	// House assignment must not depend on the JSON rounding of Planet.Lon.
+	rawLons := make([]float64, 0, len(computedBodies))
 	for _, b := range computedBodies {
 		res, err := sweph.CalcUT(jd, b.body, e.useSwiss)
+		if err == nil && e.useSwiss && !meanPoints[b.name] && !res.UsedSwiss() {
+			err = fmt.Errorf("swiss ephemeris files did not cover the request")
+		}
 		if err != nil {
 			if optionalBodies[b.name] {
 				e.log.Debug("optional body skipped", "body", b.name, "reason", err.Error())
@@ -86,6 +126,7 @@ func (e *Engine) Compute(in Input) (*Chart, error) {
 			Speed:      round4(res.LonSpeed),
 			Retrograde: res.LonSpeed < 0,
 		})
+		rawLons = append(rawLons, lon)
 	}
 
 	c := &Chart{
@@ -119,7 +160,7 @@ func (e *Engine) Compute(in Input) (*Chart, error) {
 			MCSign:  signFor(hr.MC),
 		}
 		for i := range c.Planets {
-			c.Planets[i].House = houseFor(c.Planets[i].Lon, hr.Cusps)
+			c.Planets[i].House = houseFor(rawLons[i], hr.Cusps)
 		}
 	}
 

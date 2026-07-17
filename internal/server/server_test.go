@@ -11,9 +11,14 @@ import (
 	"github.com/teya-app/ephemeris-service/internal/chart"
 )
 
-func testHandler() http.Handler {
+func testHandler(t *testing.T) http.Handler {
+	t.Helper()
 	log := slog.New(slog.DiscardHandler)
-	return New(chart.NewEngine("", log), log)
+	engine, err := chart.NewEngine("", log)
+	if err != nil {
+		t.Fatalf("NewEngine: %v", err)
+	}
+	return New(engine, log)
 }
 
 func post(t *testing.T, h http.Handler, body string) *httptest.ResponseRecorder {
@@ -26,7 +31,7 @@ func post(t *testing.T, h http.Handler, body string) *httptest.ResponseRecorder 
 }
 
 func TestChartOK(t *testing.T) {
-	rec := post(t, testHandler(), `{
+	rec := post(t, testHandler(t), `{
 		"datetime_utc": "1990-05-17T21:15:00Z",
 		"lat": 59.9386, "lon": 30.3141,
 		"house_system": "placidus"
@@ -48,7 +53,7 @@ func TestChartOK(t *testing.T) {
 }
 
 func TestChartDefaultsToPlacidus(t *testing.T) {
-	rec := post(t, testHandler(), `{"datetime_utc": "1990-05-17T21:15:00Z", "lat": 0, "lon": 0}`)
+	rec := post(t, testHandler(t), `{"datetime_utc": "1990-05-17T21:15:00Z", "lat": 0, "lon": 0}`)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
 	}
@@ -77,7 +82,7 @@ func TestChartValidation(t *testing.T) {
 		{"bad house system", `{"datetime_utc": "1990-05-17T21:15:00Z", "lat": 0, "lon": 0, "house_system": "vedic"}`, "vedic"},
 		{"unknown field", `{"datetime_utc": "1990-05-17T21:15:00Z", "lat": 0, "lon": 0, "name": "Ivan"}`, "Ivan"},
 	}
-	h := testHandler()
+	h := testHandler(t)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rec := post(t, h, tt.body)
@@ -94,7 +99,7 @@ func TestChartValidation(t *testing.T) {
 func TestHealthz(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	rec := httptest.NewRecorder()
-	testHandler().ServeHTTP(rec, req)
+	testHandler(t).ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d", rec.Code)
 	}
@@ -104,5 +109,72 @@ func TestHealthz(t *testing.T) {
 	}
 	if resp["status"] != "ok" || resp["engine_version"] == "" {
 		t.Errorf("unexpected healthz response: %v", resp)
+	}
+}
+
+func TestChartAcceptsOffsetDatetime(t *testing.T) {
+	h := testHandler(t)
+	utc := post(t, h, `{"datetime_utc": "1990-05-17T21:15:00Z", "lat": 0, "lon": 0}`)
+	off := post(t, h, `{"datetime_utc": "1990-05-18T02:15:00+05:00", "lat": 0, "lon": 0}`)
+	if utc.Code != http.StatusOK || off.Code != http.StatusOK {
+		t.Fatalf("status = %d / %d, want 200", utc.Code, off.Code)
+	}
+	if utc.Body.String() != off.Body.String() {
+		t.Error("same instant written with an offset must produce an identical chart")
+	}
+}
+
+func TestChartRejectsTrailingData(t *testing.T) {
+	rec := post(t, testHandler(t), `{"datetime_utc": "1990-05-17T21:15:00Z", "lat": 0, "lon": 0}{"x":1}`)
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want 400; body = %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestChartRejectsOversizedBody(t *testing.T) {
+	body := `{"datetime_utc": "1990-05-17T21:15:00Z", "lat": 0, "lon": 0, "house_system": "` +
+		strings.Repeat("x", 8<<10) + `"}`
+	rec := post(t, testHandler(t), body)
+	if rec.Code != http.StatusRequestEntityTooLarge {
+		t.Errorf("status = %d, want 413; body = %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestMethodNotAllowedIsJSON(t *testing.T) {
+	h := testHandler(t)
+	for _, tt := range []struct{ method, path string }{
+		{http.MethodGet, "/v1/chart"},
+		{http.MethodPost, "/healthz"},
+	} {
+		req := httptest.NewRequest(tt.method, tt.path, nil)
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		if rec.Code != http.StatusMethodNotAllowed {
+			t.Errorf("%s %s: status = %d, want 405", tt.method, tt.path, rec.Code)
+		}
+		var resp map[string]string
+		if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+			t.Errorf("%s %s: 405 body is not JSON: %s", tt.method, tt.path, rec.Body.String())
+		} else if resp["error"] == "" {
+			t.Errorf("%s %s: 405 body lacks error field: %v", tt.method, tt.path, resp)
+		}
+	}
+}
+
+func TestPolarFallbackAlwaysPresent(t *testing.T) {
+	rec := post(t, testHandler(t), `{"datetime_utc": "1990-05-17T21:15:00Z", "lat": 0, "lon": 0}`)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d", rec.Code)
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(rec.Body.Bytes(), &raw); err != nil {
+		t.Fatal(err)
+	}
+	var meta map[string]any
+	if err := json.Unmarshal(raw["meta"], &meta); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := meta["polar_fallback"]; !ok {
+		t.Error("meta.polar_fallback missing from response")
 	}
 }

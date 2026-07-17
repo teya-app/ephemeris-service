@@ -45,7 +45,10 @@ func TestGoldenCharts(t *testing.T) {
 		t.Skip("no golden charts yet (populated after manual cross-check with astro.com)")
 	}
 
-	engine := NewEngine(os.Getenv("EPHE_PATH"), slog.New(slog.DiscardHandler))
+	engine, err := NewEngine(os.Getenv("EPHE_PATH"), slog.New(slog.DiscardHandler))
+	if err != nil {
+		t.Fatalf("NewEngine: %v", err)
+	}
 
 	for _, file := range files {
 		file := file

@@ -8,10 +8,10 @@ func TestAngularSep(t *testing.T) {
 	}{
 		{0, 0, 0},
 		{0, 90, 90},
-		{350, 10, 20}, // wrap through 0°
-		{10, 350, 20}, // symmetric
+		{350, 10, 20},
+		{10, 350, 20},
 		{0, 180, 180},
-		{0, 181, 179}, // separation never exceeds 180
+		{0, 181, 179},
 	}
 	for _, tt := range tests {
 		if got := angularSep(tt.a, tt.b); got != tt.want {
@@ -23,10 +23,10 @@ func TestAngularSep(t *testing.T) {
 func TestComputeAspects(t *testing.T) {
 	planets := []Planet{
 		{Name: "sun", Lon: 10},
-		{Name: "moon", Lon: 130.5},    // 120.5° from sun → trine, orb 0.5
-		{Name: "mars", Lon: 15},       // 5° from sun → conjunction
-		{Name: "mean_node", Lon: 190}, // excluded from aspects
-		{Name: "venus", Lon: 250},     // 120° from moon → trine; 240° (=120) from sun → trine
+		{Name: "moon", Lon: 130.5},
+		{Name: "mars", Lon: 15},
+		{Name: "mean_node", Lon: 190},
+		{Name: "venus", Lon: 250},
 	}
 	aspects := computeAspects(planets)
 
@@ -58,7 +58,6 @@ func TestComputeAspects(t *testing.T) {
 }
 
 func TestComputeAspectsNoFalsePositives(t *testing.T) {
-	// 45° separation is not a major aspect under our orbs.
 	planets := []Planet{{Name: "sun", Lon: 0}, {Name: "moon", Lon: 45}}
 	if aspects := computeAspects(planets); len(aspects) != 0 {
 		t.Errorf("expected no aspects at 45°, got %v", aspects)

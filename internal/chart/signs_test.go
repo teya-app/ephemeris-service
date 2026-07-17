@@ -13,9 +13,9 @@ func TestSignFor(t *testing.T) {
 		{56.78, "taurus"},
 		{180, "libra"},
 		{359.9999, "pisces"},
-		{360, "aries"},  // wraps
-		{-10, "pisces"}, // negative wraps
-		{725, "aries"},  // > 720 wraps twice
+		{360, "aries"},
+		{-10, "pisces"},
+		{725, "aries"},
 	}
 	for _, tt := range tests {
 		if got := signFor(tt.lon); got != tt.want {

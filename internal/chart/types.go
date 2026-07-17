@@ -55,7 +55,7 @@ type Meta struct {
 	HouseSystem   string `json:"house_system"`
 	// PolarFallback is true when a quadrant house system was undefined at
 	// this latitude and cusps were computed with Porphyry instead.
-	PolarFallback bool `json:"polar_fallback,omitempty"`
+	PolarFallback bool `json:"polar_fallback"`
 }
 
 // Chart is the complete calculation result.

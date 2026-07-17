@@ -2,19 +2,26 @@ package chart
 
 import (
 	"log/slog"
+	"math"
+	"sync"
 	"testing"
 	"time"
 )
 
-func testEngine() *Engine {
-	return NewEngine("", slog.New(slog.DiscardHandler))
+func testEngine(t *testing.T) *Engine {
+	t.Helper()
+	e, err := NewEngine("", slog.New(slog.DiscardHandler))
+	if err != nil {
+		t.Fatalf("NewEngine: %v", err)
+	}
+	return e
 }
 
 // TestComputeSmoke checks structural invariants and coarse astronomical
 // facts that hold regardless of ephemeris precision. Exact positions are
 // verified by the golden test suite against astro.com references.
 func TestComputeSmoke(t *testing.T) {
-	c, err := testEngine().Compute(Input{
+	c, err := testEngine(t).Compute(Input{
 		DatetimeUTC: time.Date(2000, 1, 1, 12, 0, 0, 0, time.UTC),
 		Lat:         55.7558, // Moscow
 		Lon:         37.6173,
@@ -29,7 +36,6 @@ func TestComputeSmoke(t *testing.T) {
 		byName[p.Name] = p
 	}
 
-	// Moshier has no Chiron; everything else must be present.
 	required := []string{
 		"sun", "moon", "mercury", "venus", "mars", "jupiter",
 		"saturn", "uranus", "neptune", "pluto", "mean_node", "lilith",
@@ -40,8 +46,6 @@ func TestComputeSmoke(t *testing.T) {
 		}
 	}
 
-	// On 2000-01-01 the Sun is ~10° into Capricorn (entered ~Dec 22,
-	// moving ~1.02°/day from 270°).
 	sun := byName["sun"]
 	if sun.Sign != "capricorn" {
 		t.Errorf("sun sign = %q, want capricorn", sun.Sign)
@@ -53,7 +57,6 @@ func TestComputeSmoke(t *testing.T) {
 		t.Error("sun cannot be retrograde")
 	}
 
-	// The Moon moves 11.7..15.4°/day and is never retrograde.
 	moon := byName["moon"]
 	if moon.Speed < 11 || moon.Speed > 16 {
 		t.Errorf("moon speed = %v °/day, want within [11, 16]", moon.Speed)
@@ -77,7 +80,6 @@ func TestComputeSmoke(t *testing.T) {
 	if c.Angles == nil {
 		t.Fatal("angles missing")
 	}
-	// For quadrant systems the 1st cusp is the Ascendant.
 	if diff := c.Angles.Asc - c.Houses[0].CuspLon; diff > 0.01 || diff < -0.01 {
 		t.Errorf("asc=%v differs from cusp1=%v", c.Angles.Asc, c.Houses[0].CuspLon)
 	}
@@ -89,9 +91,8 @@ func TestComputeSmoke(t *testing.T) {
 	}
 }
 
-// TestComputeNoHouses covers the unknown-birth-time mode.
 func TestComputeNoHouses(t *testing.T) {
-	c, err := testEngine().Compute(Input{
+	c, err := testEngine(t).Compute(Input{
 		DatetimeUTC: time.Date(1985, 7, 13, 0, 0, 0, 0, time.UTC),
 		Lat:         0,
 		Lon:         0,
@@ -110,7 +111,6 @@ func TestComputeNoHouses(t *testing.T) {
 	}
 }
 
-// TestComputeDeterminism: same input → same output.
 func TestComputeDeterminism(t *testing.T) {
 	in := Input{
 		DatetimeUTC: time.Date(1969, 11, 20, 6, 30, 0, 0, time.UTC),
@@ -118,7 +118,7 @@ func TestComputeDeterminism(t *testing.T) {
 		Lon:         30.3141,
 		HouseSystem: "placidus",
 	}
-	e := testEngine()
+	e := testEngine(t)
 	a, err := e.Compute(in)
 	if err != nil {
 		t.Fatalf("Compute: %v", err)
@@ -132,4 +132,126 @@ func TestComputeDeterminism(t *testing.T) {
 			t.Errorf("non-deterministic result for %s", a.Planets[i].Name)
 		}
 	}
+}
+
+func TestNewEngineRejectsUnusableEphePath(t *testing.T) {
+	if _, err := NewEngine(t.TempDir(), slog.New(slog.DiscardHandler)); err == nil {
+		t.Fatal("NewEngine with an empty ephemeris dir must fail")
+	}
+}
+
+func TestComputePolarFallback(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		lat  float64
+	}{
+		{"murmansk", 68.97},
+		{"north pole", 90},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			c, err := testEngine(t).Compute(Input{
+				DatetimeUTC: time.Date(1990, 5, 17, 21, 15, 0, 0, time.UTC),
+				Lat:         tt.lat,
+				Lon:         33.08,
+				HouseSystem: "placidus",
+			})
+			if err != nil {
+				t.Fatalf("Compute: %v", err)
+			}
+			if !c.Meta.PolarFallback {
+				t.Error("polar_fallback must be true beyond the polar circle")
+			}
+			if len(c.Houses) != 12 {
+				t.Fatalf("houses = %d, want 12", len(c.Houses))
+			}
+			for _, h := range c.Houses {
+				if h.CuspLon < 0 || h.CuspLon >= 360 {
+					t.Errorf("house %d cusp %v out of [0, 360)", h.Num, h.CuspLon)
+				}
+			}
+			for _, p := range c.Planets {
+				if p.House < 1 || p.House > 12 {
+					t.Errorf("%s house = %d, want 1..12", p.Name, p.House)
+				}
+			}
+		})
+	}
+}
+
+func TestComputeHouseSystems(t *testing.T) {
+	in := Input{
+		DatetimeUTC: time.Date(1990, 5, 17, 21, 15, 0, 0, time.UTC),
+		Lat:         59.9386,
+		Lon:         30.3141,
+	}
+	e := testEngine(t)
+	for name := range HouseSystems {
+		t.Run(name, func(t *testing.T) {
+			in := in
+			in.HouseSystem = name
+			c, err := e.Compute(in)
+			if err != nil {
+				t.Fatalf("Compute: %v", err)
+			}
+			if len(c.Houses) != 12 || c.Angles == nil {
+				t.Fatalf("incomplete chart: %d houses, angles=%v", len(c.Houses), c.Angles)
+			}
+			if c.Meta.PolarFallback {
+				t.Errorf("unexpected polar fallback at lat %v", in.Lat)
+			}
+			switch name {
+			case "placidus", "koch", "porphyry":
+				if d := lonDiff(c.Angles.Asc, c.Houses[0].CuspLon); d > 0.01 {
+					t.Errorf("asc=%v differs from cusp1=%v", c.Angles.Asc, c.Houses[0].CuspLon)
+				}
+			case "whole_sign":
+				for _, h := range c.Houses {
+					if r := math.Mod(h.CuspLon, 30); r > 1e-9 && 30-r > 1e-9 {
+						t.Errorf("whole-sign cusp %d = %v, not a multiple of 30°", h.Num, h.CuspLon)
+					}
+				}
+			case "equal":
+				for i := 1; i < 12; i++ {
+					step := normalizeLon(c.Houses[i].CuspLon - c.Houses[i-1].CuspLon)
+					if step < 29.99 || step > 30.01 {
+						t.Errorf("equal-house step %d→%d = %v, want 30°", i, i+1, step)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestComputeConcurrent(t *testing.T) {
+	in := Input{
+		DatetimeUTC: time.Date(1969, 11, 20, 6, 30, 0, 0, time.UTC),
+		Lat:         59.9386,
+		Lon:         30.3141,
+		HouseSystem: "placidus",
+	}
+	e := testEngine(t)
+	want, err := e.Compute(in)
+	if err != nil {
+		t.Fatalf("Compute: %v", err)
+	}
+
+	var wg sync.WaitGroup
+	for range 32 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			got, err := e.Compute(in)
+			if err != nil {
+				t.Errorf("Compute: %v", err)
+				return
+			}
+			for i := range want.Planets {
+				if got.Planets[i] != want.Planets[i] {
+					t.Errorf("concurrent result differs for %s", want.Planets[i].Name)
+					return
+				}
+			}
+		}()
+	}
+	wg.Wait()
 }

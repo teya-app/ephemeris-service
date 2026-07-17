@@ -17,6 +17,15 @@ func (r *statusRecorder) WriteHeader(status int) {
 	r.ResponseWriter.WriteHeader(status)
 }
 
+// Unwrap and Flush keep streaming handlers working through this wrapper.
+func (r *statusRecorder) Unwrap() http.ResponseWriter { return r.ResponseWriter }
+
+func (r *statusRecorder) Flush() {
+	if f, ok := r.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
 // requestLogMiddleware logs method, path, status and duration.
 // Request bodies are never logged: they contain birth data (personal data).
 func requestLogMiddleware(log *slog.Logger, next http.Handler) http.Handler {
