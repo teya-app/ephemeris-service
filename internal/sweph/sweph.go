@@ -3,9 +3,14 @@
 //
 // The underlying library keeps global state and is not thread-safe, so every
 // exported function serializes access through a package-level mutex.
+//
+// TLSOFF is required: without it the library state (including the ephemeris
+// path) is thread-local on Linux, and goroutines migrating between OS
+// threads silently lose the configured data files.
 package sweph
 
 /*
+#cgo CFLAGS: -DTLSOFF
 #cgo LDFLAGS: -lm
 #include <stdlib.h>
 #include "swephexp.h"
@@ -22,6 +27,7 @@ import (
 // Body identifies a celestial body using Swiss Ephemeris planet numbers.
 type Body int
 
+// Swiss Ephemeris planet numbers of the bodies used in charts.
 const (
 	Sun        Body = C.SE_SUN
 	Moon       Body = C.SE_MOON

@@ -18,3 +18,5 @@ Vendored files: the library set only (`swecl.c swedate.c swehel.c swehouse.c swe
 ## Thread safety
 
 The library keeps global state (open file handles, cached data) and is **not thread-safe**. `sweph.go` serializes all calls through a package mutex — do not bypass it.
+
+The binding compiles with `-DTLSOFF`. Without it the state is `__thread`-local on Linux (`sweodef.h`), and Go goroutines migrating between OS threads silently lose the `swe_set_ephe_path` configuration — requests fall back to Moshier while the startup probe on the main thread succeeds. macOS is unaffected (`__APPLE__` disables TLS), so this only reproduces in Linux containers.
