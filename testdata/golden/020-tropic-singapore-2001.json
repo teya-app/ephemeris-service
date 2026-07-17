@@ -1,0 +1,116 @@
+{
+  "name": "tropic-singapore-2001",
+  "source": "swetest 2.10.03 (Astrodienst reference utility, same engine and data files as astro.com)",
+  "input": {
+    "datetime_utc": "2001-09-09T09:09:00Z",
+    "lat": 1.3521,
+    "lon": 103.8198,
+    "house_system": "whole_sign"
+  },
+  "expected": {
+    "planets": [
+      {
+        "name": "sun",
+        "lon": 166.7550256
+      },
+      {
+        "name": "moon",
+        "lon": 59.7156545
+      },
+      {
+        "name": "mercury",
+        "lon": 191.5868231
+      },
+      {
+        "name": "venus",
+        "lon": 135.8060901
+      },
+      {
+        "name": "mars",
+        "lon": 270.3260917
+      },
+      {
+        "name": "jupiter",
+        "lon": 101.2710925
+      },
+      {
+        "name": "saturn",
+        "lon": 74.687099
+      },
+      {
+        "name": "uranus",
+        "lon": 321.9122127
+      },
+      {
+        "name": "neptune",
+        "lon": 306.3825054
+      },
+      {
+        "name": "pluto",
+        "lon": 252.6162768
+      },
+      {
+        "name": "mean_node",
+        "lon": 92.3735854
+      },
+      {
+        "name": "lilith",
+        "lon": 331.9704385
+      },
+      {
+        "name": "chiron",
+        "lon": 263.0007157
+      }
+    ],
+    "houses": [
+      {
+        "num": 1,
+        "cusp_lon": 300
+      },
+      {
+        "num": 2,
+        "cusp_lon": 330
+      },
+      {
+        "num": 3,
+        "cusp_lon": 0
+      },
+      {
+        "num": 4,
+        "cusp_lon": 30
+      },
+      {
+        "num": 5,
+        "cusp_lon": 60
+      },
+      {
+        "num": 6,
+        "cusp_lon": 90
+      },
+      {
+        "num": 7,
+        "cusp_lon": 120
+      },
+      {
+        "num": 8,
+        "cusp_lon": 150
+      },
+      {
+        "num": 9,
+        "cusp_lon": 180
+      },
+      {
+        "num": 10,
+        "cusp_lon": 210
+      },
+      {
+        "num": 11,
+        "cusp_lon": 240
+      },
+      {
+        "num": 12,
+        "cusp_lon": 270
+      }
+    ]
+  }
+}

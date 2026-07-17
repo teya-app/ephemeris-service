@@ -1,0 +1,116 @@
+{
+  "name": "polar-norilsk-solstice-1975",
+  "source": "swetest 2.10.03 (Astrodienst reference utility, same engine and data files as astro.com)",
+  "input": {
+    "datetime_utc": "1975-12-21T15:00:00Z",
+    "lat": 69.3558,
+    "lon": 88.1893,
+    "house_system": "placidus"
+  },
+  "expected": {
+    "planets": [
+      {
+        "name": "sun",
+        "lon": 269.1193334
+      },
+      {
+        "name": "moon",
+        "lon": 126.9881086
+      },
+      {
+        "name": "mercury",
+        "lon": 281.7086332
+      },
+      {
+        "name": "venus",
+        "lon": 227.0285708
+      },
+      {
+        "name": "mars",
+        "lon": 80.6817026
+      },
+      {
+        "name": "jupiter",
+        "lon": 14.9602793
+      },
+      {
+        "name": "saturn",
+        "lon": 121.7666644
+      },
+      {
+        "name": "uranus",
+        "lon": 215.9670637
+      },
+      {
+        "name": "neptune",
+        "lon": 252.1586436
+      },
+      {
+        "name": "pluto",
+        "lon": 191.5431485
+      },
+      {
+        "name": "mean_node",
+        "lon": 229.8169686
+      },
+      {
+        "name": "lilith",
+        "lon": 5.6972969
+      },
+      {
+        "name": "chiron",
+        "lon": 23.6751253
+      }
+    ],
+    "houses": [
+      {
+        "num": 1,
+        "cusp_lon": 156.3727214
+      },
+      {
+        "num": 2,
+        "cusp_lon": 179.3200959
+      },
+      {
+        "num": 3,
+        "cusp_lon": 202.2674704
+      },
+      {
+        "num": 4,
+        "cusp_lon": 225.2148449
+      },
+      {
+        "num": 5,
+        "cusp_lon": 262.2674704
+      },
+      {
+        "num": 6,
+        "cusp_lon": 299.3200959
+      },
+      {
+        "num": 7,
+        "cusp_lon": 336.3727214
+      },
+      {
+        "num": 8,
+        "cusp_lon": 359.3200959
+      },
+      {
+        "num": 9,
+        "cusp_lon": 22.2674704
+      },
+      {
+        "num": 10,
+        "cusp_lon": 45.2148449
+      },
+      {
+        "num": 11,
+        "cusp_lon": 82.2674704
+      },
+      {
+        "num": 12,
+        "cusp_lon": 119.3200959
+      }
+    ]
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "name": "south-sydney-1988",
+  "source": "swetest 2.10.03 (Astrodienst reference utility, same engine and data files as astro.com)",
+  "input": {
+    "datetime_utc": "1988-09-14T03:25:00Z",
+    "lat": -33.8688,
+    "lon": 151.2093,
+    "house_system": "placidus"
+  },
+  "expected": {
+    "planets": [
+      {
+        "name": "sun",
+        "lon": 171.5345763
+      },
+      {
+        "name": "moon",
+        "lon": 203.6146093
+      },
+      {
+        "name": "mercury",
+        "lon": 198.0226159
+      },
+      {
+        "name": "venus",
+        "lon": 127.1291421
+      },
+      {
+        "name": "mars",
+        "lon": 9.1275298
+      },
+      {
+        "name": "jupiter",
+        "lon": 65.9490307
+      },
+      {
+        "name": "saturn",
+        "lon": 266.105672
+      },
+      {
+        "name": "uranus",
+        "lon": 267.0763858
+      },
+      {
+        "name": "neptune",
+        "lon": 277.4256061
+      },
+      {
+        "name": "pluto",
+        "lon": 220.6200554
+      },
+      {
+        "name": "mean_node",
+        "lon": 343.552042
+      },
+      {
+        "name": "lilith",
+        "lon": 163.6632834
+      },
+      {
+        "name": "chiron",
+        "lon": 96.4742994
+      }
+    ],
+    "houses": [
+      {
+        "num": 1,
+        "cusp_lon": 298.2309628
+      },
+      {
+        "num": 2,
+        "cusp_lon": 320.1724881
+      },
+      {
+        "num": 3,
+        "cusp_lon": 345.9137343
+      },
+      {
+        "num": 4,
+        "cusp_lon": 17.1280741
+      },
+      {
+        "num": 5,
+        "cusp_lon": 52.4954887
+      },
+      {
+        "num": 6,
+        "cusp_lon": 87.2956721
+      },
+      {
+        "num": 7,
+        "cusp_lon": 118.2309628
+      },
+      {
+        "num": 8,
+        "cusp_lon": 140.1724881
+      },
+      {
+        "num": 9,
+        "cusp_lon": 165.9137343
+      },
+      {
+        "num": 10,
+        "cusp_lon": 197.1280741
+      },
+      {
+        "num": 11,
+        "cusp_lon": 232.4954887
+      },
+      {
+        "num": 12,
+        "cusp_lon": 267.2956721
+      }
+    ]
+  }
+}

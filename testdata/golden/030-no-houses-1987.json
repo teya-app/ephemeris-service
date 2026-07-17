@@ -1,0 +1,66 @@
+{
+  "name": "no-houses-1987",
+  "source": "swetest 2.10.03 (Astrodienst reference utility, same engine and data files as astro.com)",
+  "input": {
+    "datetime_utc": "1987-04-15T06:30:00Z",
+    "lat": 0,
+    "lon": 0,
+    "house_system": "none"
+  },
+  "expected": {
+    "planets": [
+      {
+        "name": "sun",
+        "lon": 24.7674338
+      },
+      {
+        "name": "moon",
+        "lon": 219.7185359
+      },
+      {
+        "name": "mercury",
+        "lon": 3.851119
+      },
+      {
+        "name": "venus",
+        "lon": 351.0876869
+      },
+      {
+        "name": "mars",
+        "lon": 66.3999095
+      },
+      {
+        "name": "jupiter",
+        "lon": 10.4593529
+      },
+      {
+        "name": "saturn",
+        "lon": 260.9769157
+      },
+      {
+        "name": "uranus",
+        "lon": 266.6431501
+      },
+      {
+        "name": "neptune",
+        "lon": 277.9952022
+      },
+      {
+        "name": "pluto",
+        "lon": 218.9797619
+      },
+      {
+        "name": "mean_node",
+        "lon": 10.9727683
+      },
+      {
+        "name": "lilith",
+        "lon": 105.9885668
+      },
+      {
+        "name": "chiron",
+        "lon": 77.5103021
+      }
+    ]
+  }
+}

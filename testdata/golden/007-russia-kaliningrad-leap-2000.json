@@ -1,0 +1,116 @@
+{
+  "name": "russia-kaliningrad-leap-2000",
+  "source": "swetest 2.10.03 (Astrodienst reference utility, same engine and data files as astro.com)",
+  "input": {
+    "datetime_utc": "2000-02-29T12:00:00Z",
+    "lat": 54.7104,
+    "lon": 20.4522,
+    "house_system": "placidus"
+  },
+  "expected": {
+    "planets": [
+      {
+        "name": "sun",
+        "lon": 340.2058372
+      },
+      {
+        "name": "moon",
+        "lon": 275.5361816
+      },
+      {
+        "name": "mercury",
+        "lon": 342.5065096
+      },
+      {
+        "name": "venus",
+        "lon": 313.9565648
+      },
+      {
+        "name": "mars",
+        "lon": 13.2215607
+      },
+      {
+        "name": "jupiter",
+        "lon": 32.5771049
+      },
+      {
+        "name": "saturn",
+        "lon": 42.3657836
+      },
+      {
+        "name": "uranus",
+        "lon": 318.122951
+      },
+      {
+        "name": "neptune",
+        "lon": 305.3502346
+      },
+      {
+        "name": "pluto",
+        "lon": 252.8379369
+      },
+      {
+        "name": "mean_node",
+        "lon": 121.9164093
+      },
+      {
+        "name": "lilith",
+        "lon": 270.026164
+      },
+      {
+        "name": "chiron",
+        "lon": 256.6091891
+      }
+    ],
+    "houses": [
+      {
+        "num": 1,
+        "cusp_lon": 118.680858
+      },
+      {
+        "num": 2,
+        "cusp_lon": 133.4211852
+      },
+      {
+        "num": 3,
+        "cusp_lon": 152.2300387
+      },
+      {
+        "num": 4,
+        "cusp_lon": 178.9782081
+      },
+      {
+        "num": 5,
+        "cusp_lon": 218.4951054
+      },
+      {
+        "num": 6,
+        "cusp_lon": 264.5717547
+      },
+      {
+        "num": 7,
+        "cusp_lon": 298.680858
+      },
+      {
+        "num": 8,
+        "cusp_lon": 313.4211852
+      },
+      {
+        "num": 9,
+        "cusp_lon": 332.2300387
+      },
+      {
+        "num": 10,
+        "cusp_lon": 358.9782081
+      },
+      {
+        "num": 11,
+        "cusp_lon": 38.4951054
+      },
+      {
+        "num": 12,
+        "cusp_lon": 84.5717547
+      }
+    ]
+  }
+}

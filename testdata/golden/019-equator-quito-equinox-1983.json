@@ -1,0 +1,116 @@
+{
+  "name": "equator-quito-equinox-1983",
+  "source": "swetest 2.10.03 (Astrodienst reference utility, same engine and data files as astro.com)",
+  "input": {
+    "datetime_utc": "1983-03-21T18:00:00Z",
+    "lat": -0.1807,
+    "lon": -78.4678,
+    "house_system": "placidus"
+  },
+  "expected": {
+    "planets": [
+      {
+        "name": "sun",
+        "lon": 0.5526404
+      },
+      {
+        "name": "moon",
+        "lon": 86.0189128
+      },
+      {
+        "name": "mercury",
+        "lon": 355.9360451
+      },
+      {
+        "name": "venus",
+        "lon": 32.833752
+      },
+      {
+        "name": "mars",
+        "lon": 18.8877636
+      },
+      {
+        "name": "jupiter",
+        "lon": 250.8627555
+      },
+      {
+        "name": "saturn",
+        "lon": 213.2952286
+      },
+      {
+        "name": "uranus",
+        "lon": 249.0874017
+      },
+      {
+        "name": "neptune",
+        "lon": 269.2023169
+      },
+      {
+        "name": "pluto",
+        "lon": 208.8943702
+      },
+      {
+        "name": "mean_node",
+        "lon": 89.633154
+      },
+      {
+        "name": "lilith",
+        "lon": 300.3707853
+      },
+      {
+        "name": "chiron",
+        "lon": 53.9272057
+      }
+    ],
+    "houses": [
+      {
+        "num": 1,
+        "cusp_lon": 99.3178636
+      },
+      {
+        "num": 2,
+        "cusp_lon": 127.7641181
+      },
+      {
+        "num": 3,
+        "cusp_lon": 158.5826851
+      },
+      {
+        "num": 4,
+        "cusp_lon": 191.1136187
+      },
+      {
+        "num": 5,
+        "cusp_lon": 222.6474195
+      },
+      {
+        "num": 6,
+        "cusp_lon": 251.6907198
+      },
+      {
+        "num": 7,
+        "cusp_lon": 279.3178636
+      },
+      {
+        "num": 8,
+        "cusp_lon": 307.7641181
+      },
+      {
+        "num": 9,
+        "cusp_lon": 338.5826851
+      },
+      {
+        "num": 10,
+        "cusp_lon": 11.1136187
+      },
+      {
+        "num": 11,
+        "cusp_lon": 42.6474195
+      },
+      {
+        "num": 12,
+        "cusp_lon": 71.6907198
+      }
+    ]
+  }
+}

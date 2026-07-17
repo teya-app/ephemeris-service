@@ -1,0 +1,116 @@
+{
+  "name": "south-cape-town-1995",
+  "source": "swetest 2.10.03 (Astrodienst reference utility, same engine and data files as astro.com)",
+  "input": {
+    "datetime_utc": "1995-10-23T08:45:00Z",
+    "lat": -33.9249,
+    "lon": 18.4241,
+    "house_system": "equal"
+  },
+  "expected": {
+    "planets": [
+      {
+        "name": "sun",
+        "lon": 209.4698199
+      },
+      {
+        "name": "moon",
+        "lon": 198.618156
+      },
+      {
+        "name": "mercury",
+        "lon": 191.7334518
+      },
+      {
+        "name": "venus",
+        "lon": 226.2288712
+      },
+      {
+        "name": "mars",
+        "lon": 241.7825713
+      },
+      {
+        "name": "jupiter",
+        "lon": 254.3274636
+      },
+      {
+        "name": "saturn",
+        "lon": 348.7344563
+      },
+      {
+        "name": "uranus",
+        "lon": 296.6462385
+      },
+      {
+        "name": "neptune",
+        "lon": 292.8664428
+      },
+      {
+        "name": "pluto",
+        "lon": 239.3073606
+      },
+      {
+        "name": "mean_node",
+        "lon": 206.1256432
+      },
+      {
+        "name": "lilith",
+        "lon": 92.6968773
+      },
+      {
+        "name": "chiron",
+        "lon": 186.3027357
+      }
+    ],
+    "houses": [
+      {
+        "num": 1,
+        "cusp_lon": 285.8126043
+      },
+      {
+        "num": 2,
+        "cusp_lon": 315.8126043
+      },
+      {
+        "num": 3,
+        "cusp_lon": 345.8126043
+      },
+      {
+        "num": 4,
+        "cusp_lon": 15.8126043
+      },
+      {
+        "num": 5,
+        "cusp_lon": 45.8126043
+      },
+      {
+        "num": 6,
+        "cusp_lon": 75.8126043
+      },
+      {
+        "num": 7,
+        "cusp_lon": 105.8126043
+      },
+      {
+        "num": 8,
+        "cusp_lon": 135.8126043
+      },
+      {
+        "num": 9,
+        "cusp_lon": 165.8126043
+      },
+      {
+        "num": 10,
+        "cusp_lon": 195.8126043
+      },
+      {
+        "num": 11,
+        "cusp_lon": 225.8126043
+      },
+      {
+        "num": 12,
+        "cusp_lon": 255.8126043
+      }
+    ]
+  }
+}
